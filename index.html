@@ -438,6 +438,12 @@ footer nav a{text-decoration:none}
 @keyframes wipe{from{clip-path:inset(0 100% 0 0)}to{clip-path:inset(0 0 0 0)}}
 .scene.out{animation:sceneout .3s var(--ease) both}
 @keyframes sceneout{to{opacity:0;transform:scale(1.03)}}
+.reel{cursor:pointer}
+.reel .pz{position:absolute;inset:0;z-index:6;display:grid;place-items:center;pointer-events:none;opacity:0;transition:opacity .25s}
+.reel.paused .pz{opacity:1}
+.reel .pz span{width:72px;height:72px;border-radius:50%;background:rgba(11,23,41,.7);border:1px solid rgba(255,255,255,.25);display:grid;place-items:center;backdrop-filter:blur(6px)}
+.reel .pz svg{width:26px;height:26px;fill:#fff}
+.reel.paused .live i{animation:none;background:#8FA1B9}
 .reel .flash{position:absolute;inset:0;background:var(--gold);opacity:0;pointer-events:none;z-index:4}
 .reel .flash.go{animation:flash .32s ease-out}
 @keyframes flash{0%{opacity:.55}100%{opacity:0}}
@@ -484,10 +490,9 @@ footer nav a{text-decoration:none}
     </div>
   </div>
 </section><section class="reel-band"><div class="wrap">
-  <div class="reel-head"><div class="eyebrow">In 30 seconds</div><small>Auto-playing · hover to pause</small></div>
-  <div class="reel" id="reel" aria-label="Assetra Global overview">
+  <div class="reel" id="reel" aria-label="Assetra Global overview — click to pause or play" role="button" tabindex="0">
     <div class="bgc"></div><div class="stripe"></div><div class="flash" id="reelFlash"></div>
-    <div class="live"><i></i>ASSETRA GLOBAL</div><div class="ctr" id="reelCtr">01 / 12</div>
+    <div class="pz"><span><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span></div><div class="live"><i></i>ASSETRA GLOBAL</div><div class="ctr" id="reelCtr">01 / 12</div>
     <div class="scene" data-t="2200"><div><div class="k a1">Offshore finance &amp; accounting</div><h3 class="a2">Your firm sleeps.<br><em>The work doesn't.</em></h3></div></div>
     <div class="scene" data-t="1500"><div><div class="k a1">Service 01</div><h3 class="a2 wipe">Bookkeeping &amp; accounting</h3><p class="a3">Daily · weekly · monthly — inside your QuickBooks or Xero</p></div></div>
     <div class="scene" data-t="1600"><div><div class="k a1">Service 02</div><h3 class="a2 wipe">Tax preparation</h3><div class="tags a3"><span>1040</span><span>1120</span><span>1120-S</span><span>1065</span><span>1041</span></div></div></div>
@@ -1171,8 +1176,8 @@ burger.addEventListener('click',()=>{const o=links.classList.toggle('open');burg
     clearTimeout(timer);timer=setTimeout(next,dur);
   }
   function next(){if(paused||document.hidden||reduce)return;show((i+1)%scenes.length);}
-  reel.addEventListener('mouseenter',()=>{paused=true;clearTimeout(timer);prog.style.animationPlayState='paused';});
-  reel.addEventListener('mouseleave',()=>{paused=false;prog.style.animationPlayState='running';timer=setTimeout(next,600);});
+  reel.addEventListener('click',e=>{if(e.target.closest('a'))return;paused=!paused;reel.classList.toggle('paused',paused);
+    if(paused){clearTimeout(timer);prog.style.animationPlayState='paused';}else{prog.style.animationPlayState='running';timer=setTimeout(next,500);}});
   document.addEventListener('visibilitychange',()=>{if(!document.hidden&&!paused){clearTimeout(timer);timer=setTimeout(next,300);}});
   if(reduce){scenes[0].classList.add('on');return;}
   const io=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){if(i<0)show(0);}})},{threshold:.3});io.observe(reel);
