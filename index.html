@@ -871,41 +871,43 @@ const money=v=>'$'+v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFrac
 function mkRow(){const d=new Date(2026,7+Math.floor(Math.random()*2),1+Math.floor(Math.random()*28));const v=Math.random()<.15?Math.random()*40000+5000:Math.random()*4800+12;
   return {date:String(d.getMonth()+1).padStart(2,'0')+'/'+String(d.getDate()).padStart(2,'0'),lbl:LBL[Math.floor(Math.random()*LBL.length)],amt:money(v),cr:Math.random()<.42};}
 const nets=[...document.querySelectorAll('canvas.nodes')].map(c=>{
-  const x=c.getContext('2d');let w=0,h=0,cols=[],raf=0,t0=0,last=0,ev=null,nextEv=1.2;
+  const x=c.getContext('2d');let w=0,h=0,cols=[],raf=0,t0=0,last=0,evs=[],nextEv=.6,orbs=[];
   const RH=28,CW=380;
   function size(){const r=c.parentElement.getBoundingClientRect();if(r.width<10||r.height<10)return false;c.width=r.width*devicePixelRatio;c.height=r.height*devicePixelRatio;x.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);w=r.width;h=r.height;
     const n=Math.max(2,Math.ceil(w/CW)+1),rows=Math.ceil(h/RH)+3;
     cols=Array.from({length:n},(_,i)=>({x:i*CW-40+(i%2?30:0),y:Math.random()*RH,v:6+Math.random()*7,rows:Array.from({length:rows},mkRow)}));
-    ev=null;t0=performance.now();last=t0;return true;}
+    evs=[];orbs=Array.from({length:Math.max(6,Math.floor(w/120))},()=>({x:Math.random()*w,y:Math.random()*h,r:40+Math.random()*90,vx:(Math.random()-.5)*12,vy:(Math.random()-.5)*10,a:.05+Math.random()*.08}));t0=performance.now();last=t0;return true;}
   function tick(row,y,col){/* recycle rows that scroll off the top */}
   function draw(now){
     const dt=Math.min(.05,(now-last)/1000);last=now;const t=(now-t0)/1000;
     x.clearRect(0,0,w,h);x.font='12px "IBM Plex Mono",Menlo,monospace';x.textBaseline='middle';
     for(const col of cols){
-      col.y-=col.v*dt;if(col.y<-RH){col.y+=RH;col.rows.shift();col.rows.push(mkRow());if(ev&&ev.col===col)ev.i--;}
+      col.y-=col.v*dt;if(col.y<-RH){col.y+=RH;col.rows.shift();col.rows.push(mkRow());evs.forEach(e=>{if(e.col===col)e.i--;});}
       col.rows.forEach((r,i)=>{const y=col.y+i*RH;if(y<-RH||y>h+RH)return;
-        const hot=ev&&ev.col===col&&ev.i===i;
-        let a=.075;x.fillStyle='rgba(159,177,201,'+a+')';x.textAlign='left';x.fillText(r.date,col.x,y);x.fillText(r.lbl,col.x+50,y);
-        x.textAlign='right';x.fillStyle=hot&&ev.p>.35?'rgba(227,197,122,'+(.85*Math.min(1,(1.05-ev.p)*4))+')':'rgba(159,177,201,'+(r.cr?.095:.075)+')';x.fillText((r.cr?'':'−')+r.amt,col.x+258,y);
+        const ev=evs.find(e=>e.col===col&&e.i===i);const hot=!!ev;
+        let a=.17;x.fillStyle='rgba(159,177,201,'+a+')';x.textAlign='left';x.fillText(r.date,col.x,y);x.fillText(r.lbl,col.x+50,y);
+        x.textAlign='right';x.fillStyle=hot&&ev.p>.35?'rgba(227,197,122,'+(.85*Math.min(1,(1.05-ev.p)*4))+')':'rgba(159,177,201,'+(r.cr?.22:.17)+')';x.fillText((r.cr?'':'−')+r.amt,col.x+258,y);
         if(hot){const p=ev.p;const fade=Math.min(1,(1.05-p)*4);
           /* gold sweep underline */
-          const sw=Math.min(1,p/.35);x.strokeStyle='rgba(201,162,74,'+(.55*fade)+')';x.lineWidth=1;x.beginPath();x.moveTo(col.x-6,y+RH/2-1);x.lineTo(col.x-6+sw*272,y+RH/2-1);x.stroke();
+          const sw=Math.min(1,p/.35);x.strokeStyle='rgba(201,162,74,'+(.8*fade)+')';x.lineWidth=1.5;x.shadowColor='rgba(227,197,122,.9)';x.shadowBlur=10;x.beginPath();x.moveTo(col.x-6,y+RH/2-1);x.lineTo(col.x-6+sw*272,y+RH/2-1);x.stroke();x.shadowBlur=0;
           /* check mark draws in */
           if(p>.3){const k=Math.min(1,(p-.3)/.25),cx=col.x+272,cy=y;x.strokeStyle='rgba(159,207,106,'+(.9*fade)+')';x.lineWidth=1.8;x.lineCap='round';x.beginPath();
             const p1=[cx,cy+1],p2=[cx+4,cy+5],p3=[cx+11,cy-4];x.moveTo(p1[0],p1[1]);
             if(k<.4){const q=k/.4;x.lineTo(p1[0]+(p2[0]-p1[0])*q,p1[1]+(p2[1]-p1[1])*q);}else{x.lineTo(p2[0],p2[1]);const q=(k-.4)/.6;x.lineTo(p2[0]+(p3[0]-p2[0])*q,p2[1]+(p3[1]-p2[1])*q);}x.stroke();}
           /* TIED label */
-          if(p>.55){x.textAlign='left';x.font='500 10px "IBM Plex Mono",Menlo,monospace';x.fillStyle='rgba(227,197,122,'+(.8*fade)+')';x.fillText('TIED  ·  $0.00 VAR',col.x+290,y);x.font='12px "IBM Plex Mono",Menlo,monospace';}
+          if(p>.55){x.textAlign='left';x.font='500 10px "IBM Plex Mono",Menlo,monospace';x.fillStyle='rgba(227,197,122,'+(.95*fade)+')';x.fillText('TIED  ·  $0.00 VAR',col.x+290,y);x.font='12px "IBM Plex Mono",Menlo,monospace';}
         }
       });
     }
     /* vignette: keep the area under the headline calm */
-    const g1=x.createLinearGradient(0,0,w,0);g1.addColorStop(0,'rgba(11,23,41,.78)');g1.addColorStop(.5,'rgba(11,23,41,.35)');g1.addColorStop(1,'rgba(11,23,41,.15)');x.fillStyle=g1;x.fillRect(0,0,w,h);
+    const g1=x.createLinearGradient(0,0,w,0);g1.addColorStop(0,'rgba(11,23,41,.62)');g1.addColorStop(.5,'rgba(11,23,41,.2)');g1.addColorStop(1,'rgba(11,23,41,.05)');x.fillStyle=g1;x.fillRect(0,0,w,h);
     const g2=x.createLinearGradient(0,0,0,h);g2.addColorStop(0,'rgba(11,23,41,.5)');g2.addColorStop(.35,'rgba(11,23,41,0)');g2.addColorStop(1,'rgba(11,23,41,.6)');x.fillStyle=g2;x.fillRect(0,0,w,h);
     /* schedule reconciliation events */
-    if(ev){ev.p+=dt/2.4;if(ev.p>=1.05)ev=null;}
-    else if(t>nextEv){const right=cols.filter(c=>c.x>w*.4);const col=(right.length?right:cols)[Math.floor(Math.random()*(right.length?right:cols).length)];const vis=col.rows.map((r,i)=>i).filter(i=>{const y=col.y+i*RH;return y>40&&y<h-40});
-      if(vis.length){ev={col,i:vis[Math.floor(Math.random()*vis.length)],p:0};}nextEv=t+1.6+Math.random()*1.6;}
+    /* glow orbs */
+    for(const o of orbs){o.x+=o.vx*dt;o.y+=o.vy*dt;if(o.x<-o.r)o.x=w+o.r;if(o.x>w+o.r)o.x=-o.r;if(o.y<-o.r)o.y=h+o.r;if(o.y>h+o.r)o.y=-o.r;const gr=x.createRadialGradient(o.x,o.y,0,o.x,o.y,o.r);gr.addColorStop(0,'rgba(227,197,122,'+o.a+')');gr.addColorStop(1,'rgba(227,197,122,0)');x.fillStyle=gr;x.beginPath();x.arc(o.x,o.y,o.r,0,7);x.fill();}
+    evs.forEach(e=>e.p+=dt/2.2);evs=evs.filter(e=>e.p<1.05);
+    if(evs.length<3&&t>nextEv){const right=cols.filter(c=>c.x>w*.4);const col=(right.length?right:cols)[Math.floor(Math.random()*(right.length?right:cols).length)];const vis=col.rows.map((r,i)=>i).filter(i=>{const y=col.y+i*RH;return y>40&&y<h-40});
+      if(vis.length){evs.push({col,i:vis[Math.floor(Math.random()*vis.length)],p:0});}nextEv=t+.6+Math.random()*.9;}
     if(!reduce)raf=requestAnimationFrame(draw);
   }
   return {c,boot(){cancelAnimationFrame(raf);if(size()){last=performance.now();draw(last);}},stop(){cancelAnimationFrame(raf);}};
