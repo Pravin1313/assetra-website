@@ -1055,7 +1055,7 @@ burger.addEventListener('click',()=>{const o=links.classList.toggle('open');burg
   }
   function startLead(){step='name';bot("Great — three quick things and someone from the team will reach out within one business day.<br><br>First, what's your <b>name</b>?");input.placeholder='Your name';input.focus();}
   function leadStep(v){
-    if(step==='name'){lead.name=v;step='firm';bot(`Nice to meet you, ${esc(v.split(' ')[0])}. Which <b>firm</b> are you with?`);input.placeholder='Firm name';}
+    if(step==='name'){v=v.replace(/\b\w/g,c=>c.toUpperCase());lead.name=v;step='firm';bot(`Nice to meet you, ${esc(v.split(' ')[0])}. Which <b>firm</b> are you with?`);input.placeholder='Firm name';}
     else if(step==='firm'){lead.firm=v;step='email';bot("And the best <b>work email</b> to reach you on?");input.placeholder='you@firm.com';}
     else if(step==='email'){if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(v)){bot("That doesn't look like an email address — could you double-check it?");return;}lead.email=v;step='need';bot("Last one — what's the first thing you'd hand off?",()=>chips([['Dedicated staffing','n:Dedicated staffing'],['Clean-up / catch-up','n:Clean-up project'],['Tax-season support','n:Tax-season support'],['Not sure yet','n:Not sure yet']]));input.placeholder='Or type it here';}
     else if(step==='need'){lead.need=v;step=null;submitLead();}
