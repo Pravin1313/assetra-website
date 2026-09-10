@@ -328,7 +328,9 @@ footer nav a{text-decoration:none}
  .links.open{display:flex}.links a{padding:12px var(--gutter);opacity:.9}}
 .phero{background:var(--navy-900);color:#fff;position:relative;overflow:hidden}
 .phero::before{content:"";position:absolute;width:520px;height:520px;border-radius:50%;background:var(--navy-700);right:-180px;top:-260px;opacity:.55}
-.phero .wrap{position:relative;padding-block:clamp(56px,7vw,96px) clamp(40px,5vw,64px)}
+.phero canvas,.contact canvas{position:absolute;inset:0;width:100%;height:100%;z-index:0}
+.phero::before{z-index:0}
+.phero .wrap{position:relative;z-index:1;padding-block:clamp(56px,7vw,96px) clamp(40px,5vw,64px)}
 .phero h1{font-size:clamp(36px,5vw,64px);max-width:18ch}
 .phero h1 em{color:var(--gold);font-style:italic;font-weight:500}
 .phero .lede{color:#B7C3D3}
@@ -369,7 +371,7 @@ footer nav a{text-decoration:none}
 </header>
 <main class="page" data-page="home">
 <section class="hero" id="top">
-  <canvas id="grid"></canvas>
+  <canvas class="nodes" id="grid"></canvas>
   <div class="wrap">
     <div>
       <div class="kicker"><span>Private Limited</span><span>Offshore Finance &amp; Accounting</span><span>Ahmedabad · U.S.</span></div>
@@ -445,7 +447,7 @@ footer nav a{text-decoration:none}
 
 </main>
 <main class="page" data-page="why">
-<section class="phero"><div class="wrap">
+<section class="phero"><canvas class="nodes"></canvas><div class="wrap">
   <div class="crumb"><a href="#/">Home</a><i>/</i>Why Assetra</div>
   <h1>Offshore capacity <em>without the review tax.</em></h1>
   <p class="lede">Why firms pull back from traditional vendors, what we built differently, who it fits, and how the two models compare side by side.</p>
@@ -517,7 +519,7 @@ footer nav a{text-decoration:none}
 
 </main>
 <main class="page" data-page="services">
-<section class="phero"><div class="wrap">
+<section class="phero"><canvas class="nodes"></canvas><div class="wrap">
   <div class="crumb"><a href="#/">Home</a><i>/</i>Services</div>
   <h1>From daily bookkeeping <em>to the 1120-S.</em></h1>
   <p class="lede">Twelve services, one embedded team, delivered inside the software your firm already runs on.</p>
@@ -579,7 +581,7 @@ footer nav a{text-decoration:none}
 
 </main>
 <main class="page" data-page="tax-season">
-<section class="phero"><div class="wrap">
+<section class="phero"><canvas class="nodes"></canvas><div class="wrap">
   <div class="crumb"><a href="#/">Home</a><i>/</i>Tax season</div>
   <h1>January–April, <em>staffed before it starts.</em></h1>
   <p class="lede">Fixed headcount can't meet the Q1 surge. Assetra adds reviewed throughput on demand, then flexes down in May.</p>
@@ -643,7 +645,7 @@ footer nav a{text-decoration:none}
 
 </main>
 <main class="page" data-page="team">
-<section class="phero"><div class="wrap">
+<section class="phero"><canvas class="nodes"></canvas><div class="wrap">
   <div class="crumb"><a href="#/">Home</a><i>/</i>Team &amp; quality</div>
   <h1>The people behind the work — <em>and the controls around it.</em></h1>
   <p class="lede">A tiered team so the right work reaches the right level, a U.S. front door with a global engine room, and controls that keep client data protected.</p>
@@ -723,7 +725,7 @@ footer nav a{text-decoration:none}
 
 </main>
 <main class="page" data-page="pricing">
-<section class="phero"><div class="wrap">
+<section class="phero"><canvas class="nodes"></canvas><div class="wrap">
   <div class="crumb"><a href="#/">Home</a><i>/</i>Pricing &amp; engagement</div>
   <h1>Start small. <em>Pay for output, not hours.</em></h1>
   <p class="lede">Indicative pricing for dedicated staffing, fixed-fee projects and seasonal support — and the two-week pilot every engagement begins with.</p>
@@ -780,7 +782,7 @@ footer nav a{text-decoration:none}
 
 </main>
 <main class="page" data-page="faq">
-<section class="phero"><div class="wrap">
+<section class="phero"><canvas class="nodes"></canvas><div class="wrap">
   <div class="crumb"><a href="#/">Home</a><i>/</i>FAQ</div>
   <h1>Questions firms ask <em>on the first call.</em></h1>
   <p class="lede">Who does the work, how much you still review, how data is handled, and what it costs — answered plainly.</p>
@@ -810,6 +812,7 @@ footer nav a{text-decoration:none}
 </main>
 <main class="page" data-page="contact">
 <section class="section dark contact" id="contact">
+  <canvas class="nodes"></canvas>
   <div class="wrap">
     <div>
       <div class="eyebrow rv">Let's talk</div>
@@ -862,26 +865,24 @@ const cio=new IntersectionObserver(es=>{es.forEach(e=>{if(!e.isIntersecting)retu
 })},{threshold:.5});
 document.querySelectorAll('[data-count]').forEach(el=>cio.observe(el));
 
-/* hero canvas: ledger grid with drifting gold nodes */
-(function(){
-  const c=document.getElementById('grid'),x=c.getContext('2d');let w,h,pts=[],raf;
-  function size(){const r=c.parentElement.getBoundingClientRect();w=c.width=r.width*devicePixelRatio;h=c.height=r.height*devicePixelRatio;x.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);w=r.width;h=r.height;
-    pts=Array.from({length:Math.min(90,Math.floor(w/15))},()=>({x:Math.random()*w,y:Math.random()*h,vx:(Math.random()-.5)*.25,vy:(Math.random()-.5)*.25,r:Math.random()*1.6+.6}));}
+/* node-network canvases (hero + every page header) */
+const nets=[...document.querySelectorAll('canvas.nodes')].map(c=>{
+  const x=c.getContext('2d');let w=0,h=0,pts=[],raf=0;
+  function size(){const r=c.parentElement.getBoundingClientRect();if(r.width<10||r.height<10)return false;c.width=r.width*devicePixelRatio;c.height=r.height*devicePixelRatio;x.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);w=r.width;h=r.height;
+    pts=Array.from({length:Math.min(90,Math.floor(w/15))},()=>({x:Math.random()*w,y:Math.random()*h,vx:(Math.random()-.5)*.25,vy:(Math.random()-.5)*.25,r:Math.random()*1.6+.6}));return true;}
   function draw(){
     x.clearRect(0,0,w,h);
-    /* grid */
     x.strokeStyle='rgba(255,255,255,.035)';x.lineWidth=1;const g=48;
     for(let i=g;i<w;i+=g){x.beginPath();x.moveTo(i,0);x.lineTo(i,h);x.stroke();}
     for(let j=g;j<h;j+=g){x.beginPath();x.moveTo(0,j);x.lineTo(w,j);x.stroke();}
-    /* links */
     for(let i=0;i<pts.length;i++){const a=pts[i];for(let j=i+1;j<pts.length;j++){const b=pts[j],d=Math.hypot(a.x-b.x,a.y-b.y);if(d<140){x.strokeStyle='rgba(201,162,74,'+(0.22*(1-d/140))+')';x.beginPath();x.moveTo(a.x,a.y);x.lineTo(b.x,b.y);x.stroke();}}}
-    /* nodes */
     for(const p of pts){x.fillStyle='rgba(227,197,122,.85)';x.beginPath();x.arc(p.x,p.y,p.r,0,7);x.fill();p.x+=p.vx;p.y+=p.vy;if(p.x<0||p.x>w)p.vx*=-1;if(p.y<0||p.y>h)p.vy*=-1;}
     if(!reduce)raf=requestAnimationFrame(draw);
   }
-  function boot(){cancelAnimationFrame(raf);size();draw();}
-  window.__heroBoot=boot;addEventListener('resize',boot);
-})();
+  return {c,boot(){cancelAnimationFrame(raf);if(size())draw();},stop(){cancelAnimationFrame(raf);}};
+});
+function bootNets(){nets.forEach(n=>{n.stop();if(n.c.closest('.page.on'))n.boot();});}
+addEventListener('resize',bootNets);
 
 /* nav shadow */
 addEventListener('scroll',()=>{document.querySelector('.nav').style.boxShadow=scrollY>10?'0 10px 30px rgba(0,0,0,.25)':'none'},{passive:true});
@@ -896,7 +897,7 @@ function show(){
   links.classList.remove('open');burger.setAttribute('aria-expanded','false');
   document.title=(key==='home'?'':{why:'Why Assetra',services:'Services','tax-season':'Tax Season',team:'Team & Quality',pricing:'Pricing',faq:'FAQ',contact:'Contact'}[key]+' · ')+'Assetra Global';
   window.scrollTo({top:0,behavior:'instant'});
-  if(key==='home')requestAnimationFrame(()=>window.__heroBoot&&window.__heroBoot());
+  requestAnimationFrame(bootNets);
   pages.find(p=>p.dataset.page===key).querySelectorAll('.rv').forEach(el=>{const r=el.getBoundingClientRect();if(r.top<innerHeight)el.classList.add('in');});
 }
 addEventListener('hashchange',show);show();
