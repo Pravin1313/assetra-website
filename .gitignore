@@ -1,3 +1,6 @@
 _site.zip
 .DS_Store
 Thumbs.db
+
+# local Claude working files - never publish
+Claude outputs/
