@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://www.assetra365.com/sitemap.xml
+Sitemap: https://assetra365.com/sitemap.xml

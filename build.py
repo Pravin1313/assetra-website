@@ -35,7 +35,7 @@ import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent
 SRC = ROOT / "src" / "site.html"
-SITE = "https://www.assetra365.com"
+SITE = "https://assetra365.com"
 
 #: path (without slash for home) -> (title, description, breadcrumb name)
 #: Titles under 60 characters, descriptions under 160, each written for the query
@@ -111,7 +111,9 @@ FIRM = {
 
 
 def url_of(key: str) -> str:
-    return SITE + "/" if key == "home" else f"{SITE}/{key}"
+    # Netlify serves the apex domain and the directory form (`/about/`); the canonical is the
+    # address actually served, not one redirect away from it.
+    return SITE + "/" if key == "home" else f"{SITE}/{key}/"
 
 
 def path_of(key: str) -> str:
