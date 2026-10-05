@@ -1,7 +1,14 @@
-# Assetra Global — website
+# assetra365.com
 
-Single-file static site for https://assetra365.com, hosted on Netlify.
+Static site on Netlify. One source document, real pages.
 
-- `index.html` — the whole site (all pages, hash-routed)
-- `netlify.toml` / `_redirects` — serve index.html for every path
-- Deploys automatically on every push to `main`.
+- `src/site.html` — the whole site: styles, header, one `<main data-page="…">` per page,
+  footer, the assistant. **Edit this file.**
+- `python3 build.py` — writes `/index.html`, `/services/index.html`, … plus `404.html`,
+  `sitemap.xml` and `robots.txt`, each page with its own title, description, canonical and
+  structured data (the FAQ page's schema is read from its own questions). Titles and
+  descriptions live in `PAGES` at the top of `build.py`.
+- Commit the source **and** the generated files; Netlify publishes the repo as-is.
+- `inkplop/`, `look-closer/`, `tapri-tycoon/` are the app privacy/support pages; untouched.
+
+Old `#/services`-style links still work: the page sends them on to `/services`.

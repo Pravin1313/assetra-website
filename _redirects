@@ -1,1 +1,3 @@
-/*    /index.html   200
+# One real page per address since October 2026 (see build.py). No SPA catch-all:
+# an unknown path is a real 404 (404.html), and old #/x links are redirected by the page.
+# The app pages (inkplop/, look-closer/, tapri-tycoon/) are ordinary folders and unaffected.
